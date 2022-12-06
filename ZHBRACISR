@@ -1,0 +1,124 @@
+FZISSID0P  if   e           K DISK                                        
+FZPRDOV0P  if   e           K DISK                                        
+ *--------------------------------------------------------------------+   
+d rtds          e ds                  extname(zrtds00d)                   
+d  rtmhdr                 1    156                                        
+d  rtmsg#               157    160                                        
+ *                                                                        
+d ntds          e ds                  extname(znetds0d)                   
+d  ntmsg#                 1      4  0                                     
+d nwds          e ds                  extname(zi87nw0p)                   
+d xwds          e ds                  extname(zi87nw0p) prefix(xw:2)      
+d ztrns         e ds                  extname(ztrans0p)                   
+d mg              s              1    dim(256)                            
+ *                                                                        
+d bi              s              1    dim(128)                            
+d @ok             s              1a                                       
+ *                                                                        
+d #yes            c                   const('1')                          
+d #no             c                   const('0')                          
+ *                                                                        
+ d                sds                                               
+d  progrm           *proc                                          
+d  pgmlib                81     90                                 
+ *                                                                 
+ *                                                                 
+c     *entry        plist                                          
+c                   parm                    caller           10    
+c                   parm                    rtds                   
+c                   parm                    ntds                   
+c                   parm                    nwds                   
+c                   parm                    xwds                   
+c                   parm                    dir               1    
+c                   parm                    mg                     
+ *                                                                 
+c     dir           caseq     'I'           procio                 
+c     dir           caseq     'O'           procnt                 
+c                   endcs                                          
+c                   return                                         
+ *                                                                 
+  *+-------------------------------------------------------------------+  
+ *|                                                                   |  
+ *+-------------------------------------------------------------------+  
+c     netrpy        begsr                                                
+c                   endsr                                                
+ *                                                                       
+c/title                                                                  
+ *+-------------------------------------------------------------------+  
+ *|                                                                   |  
+ *+-------------------------------------------------------------------+  
+c     netreq        begsr                                                
+**                                                                       
+c                   move      *blank        #bin             11          
+c                   move      *blank        #iss              3          
+c                   move      *blank        #issbnk           3          
+c                   move      *blank        #acqbnk           3          
+** cek nama bank                                                         
+C     ntaqpt        chain     zprdov0p                                   
+c                   if        %found                                     
+c                   eval      #acqbnk = prprod                        
+c                   else                                              
+c                   endif                                             
+** cek iss dari bin                                                   
+c                   eval      #bin = %trim(%subst(ntcrd#:1:6))        
+c     #bin          chain     Zissid0p                                
+c                   if        %found                                  
+c                   eval      #iss = isbnk#                           
+** cek nama bank                                                      
+C     #iss          chain     zprdov0p                                
+c                   if        %found                                  
+c                   eval      #issbnk = prprod                        
+c                   else                                              
+c                   endif                                             
+**                                                                    
+c                   if        #acqbnk = #issbnk                       
+c                   eval      nwsend = 'N'                            
+c                   eval      nwsndn = 'N'                            
+c                   eval      Ntrspc = '01'                           
+c                   eval      Nwrspc = '12'                                 
+c                   eval      Ntactn = 'D'                                  
+c                   else                                                    
+c                   endif                                                   
+c                   else                                                    
+c                   endif                                                   
+ *                                                                          
+c                   endsr                                                   
+ *                                                                          
+c/title                                                                     
+ *+-------------------------------------------------------------------+     
+ *|                                                                   |     
+ *+-------------------------------------------------------------------+     
+c     procnt        begsr                                                   
+c     ntmsgf        caseq     0             itmreq                          
+c     ntmsgf        caseq     2             itmreq                          
+c                   cas                     itmrpy                          
+c                   endcs                                                   
+c                   endsr                                                   
+c/title                                                                   
+ *+-------------------------------------------------------------------+   
+ *|                                                                   |   
+ *+-------------------------------------------------------------------+   
+c     procio        begsr                                                 
+c     ntmsgf        caseq     1             netrpy                        
+c     ntmsgf        caseq     3             netrpy                        
+c                   cas                     netreq                        
+c                   endcs                                                 
+c                   endsr                                                 
+c/title                                                                   
+ *+-------------------------------------------------------------------+   
+ *|                                                                   |   
+ *+-------------------------------------------------------------------+   
+c     itmreq        begsr                                                 
+c                   endsr                                                 
+c/title                                                                   
+ *+-------------------------------------------------------------------+   
+ *|                                                                   |   
+  *+-------------------------------------------------------------------+     
+c     itmrpy        begsr                                                   
+c                   endsr                                                   
+c/title                                                                     
+ *+-------------------------------------------------------------------+     
+ *|                                                                   |     
+ *+-------------------------------------------------------------------+     
+c     init          begsr                                                   
+c                   endsr                                                   
