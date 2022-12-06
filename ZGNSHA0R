@@ -1,0 +1,92 @@
+h DFTACTGRP(*NO) ACTGRP('AS') BNDDIR('QC2LE') debug                     
+                                                                        
+d Qc3CalculateHash...                                                   
+d                 PR                  ExtProc('Qc3CalculateHash')       
+d   InData                        *   value                             
+d   IndataL                     10i 0 const                             
+d   InDataF                      8a   const                             
+d   AlgoDes                     16a   const                             
+d   AlgoFmt                      8a   const                             
+d   CryptoSP                     1a   const                             
+d   CryptoDev                    1a   const options(*omit)              
+d   Hash                        64a   options(*varsize:*omit)           
+d   ErrorCode                32767a   options(*varsize)                 
+                                                                        
+d ALGD0500_t      ds                  qualified                         
+d                                     based(Template)                   
+d   HashAlg                     10i 0                                   
+                                                                        
+d QDCXLATE        PR                  ExtPgm('QDCXLATE')                
+d   len                          5p 0 const                         
+d   data                     32702a   options(*varsize)             
+d   table                       10a   const                         
+                                                                    
+d cvthc           PR                  ExtProc('cvthc')              
+d   target                   65534A   options(*varsize)             
+d   src_bits                 32767A   options(*varsize) const       
+d   tgt_length                  10I 0 value                         
+                                                                    
+d ErrorNull       ds                  qualified                     
+d    BytesPro                   10i 0 inz(0)                        
+d    BytesAvai                  10i 0 inz(0)                        
+d HASH_MD5        c                   1                             
+d HASH_SHA1       c                   2                             
+d HASH_SHA256     c                   3                             
+d HASH_SHA384     c                   4                             
+d HASH_SHA512     c                   5                             
+                                                                    
+d data            s           2000A                                 
+d len             s             10i 0                              
+d alg             ds                  likeds(ALGD0500_t)           
+d bin             s             80a                                
+d $hex            s            128a                                
+d @SHA            s             11a                                
+d @INPUT          s          65535a                                
+d @HASIL          s            128a                                
+                                                                   
+c     *entry        plist                                          
+c                   parm                    @INPUT                 
+c                   parm                    @METHOD           6    
+c*                  parm                    @LENGTH           4 0  
+c                   parm                    @HASIL                 
+                                                                   
+c                   eval      $hex = *blanks                       
+ /free                                                             
+       data = @INPUT;                                              
+       len = %len(%trimr(data));                                   
+        IF        @METHOD = 'MD5';                                 
+                alg.HashAlg = HASH_MD5;                                                 
+        ELSEIF    @METHOD = 'SHA1';                                             
+        alg.HashAlg = HASH_SHA1;                                                
+        ELSEIF    @METHOD = 'SHA256';                                           
+        alg.HashAlg = HASH_SHA256;                                              
+        ELSEIF    @METHOD = 'SHA384';                                           
+        alg.HashAlg = HASH_SHA384;                                              
+        ELSEIF    @METHOD = 'SHA512';                                           
+        alg.HashAlg = HASH_SHA512;                                              
+        ENDIF;                                                                  
+    //Set the HASH Algorithm you want to use !                                  
+                                                                                
+    //Convert from EBCDIC to ASCII (skip this step if you want Hash in EBCDIC)  
+       QDCXLATE(len: data: 'QTCPASC');                                          
+    //API to calculate the SHA1 hash                                            
+       Qc3CalculateHash( %addr(data)                                            
+                       : len                                                    
+                       : 'DATA0100'                                             
+                       : alg                                                    
+                       : 'ALGD0500'           
+                      : '0'                  
+                      : *OMIT                
+                      : bin                  
+                      : ErrorNull );         
+  //Convert to HEX                           
+     len = %len(%trim(bin))*2;               
+     cvthc( $hex: bin: %len(bin)*2);         
+     @hasil = %subst( $hex:1:len );          
+   //@HASIL = %TRIMR($hex);                  
+                                             
+     *inlr = *on;                            
+  //dsply $hex;                              
+                                             
+/end-free                                    
+                                             
