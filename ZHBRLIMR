@@ -1,0 +1,135 @@
+fztrndt0p  if   e           k disk                                    
+fzprdov0p  if   e           k disk                                    
+fzum905l2  if   e           k disk                                    
+ *                                                                    
+d mg              s              1    dim(120)                        
+d bi              s              1    dim(128)                        
+d*                                                                    
+d rtds          e ds                  extname(zrtds00d)               
+d nwds          e ds                  extname(zi87nw0p)               
+d  nwval                471    473                                    
+d xwds          e ds                  extname(zi87nw0p) prefix(xw:2)  
+d ntds          e ds                  extname(znetds0d)               
+d ntmsg#                  1      4  0                                 
+d pnem                  580    582  0                                 
+d pnem#                 580    581                                    
+d pnec#                 582    582                                    
+d msg#            DS                                                  
+d  msgc                   1      2  0                                 
+d  msgf                   3      3  0                                 
+d  msgt                   4      4  0                                 
+ *                                                                 
+c     ktrndt        klist                                          
+c                   kfld                    ntstan           12 0  
+c                   kfld                    dtid              3    
+ *                                                                 
+c     keyum         klist                                          
+c                   kfld                    umref                  
+c                   kfld                    umchr                  
+c     *entry        plist                                          
+c                   parm                    method           10    
+c                   parm                    rtds                   
+c                   parm                    ntds                   
+c                   parm                    nwds                   
+c                   parm                    xwds                   
+c                   parm                    dir               1    
+c                   parm                    mg                     
+ *                                                                 
+c                   movea     nwbm1a        bi(1)                  
+c                   movea     nwbm2a        bi(65)                 
+c     dir           caseq     'I'           procio                   
+c     dir           caseq     'O'           procnt                   
+c                   cas                     init                     
+c                   endcs                                            
+c                   movea     bi(1)         nwbm1a                   
+c                   movea     bi(65)        nwbm2a                   
+c                   return                                           
+ *-----------------------------------------------------------------  
+ *   PROCIO                                                          
+ *-----------------------------------------------------------------  
+c     procio        begsr                                            
+c     ntmsgf        caseq     1             cvtnetrpy                
+c     ntmsgf        caseq     3             cvtnetrpy                
+c                   cas                     cvtnetreq                
+c                   endcs                                            
+c                   endsr                                            
+ *-----------------------------------------------------------------  
+ *-----------------------------------------------------------------  
+c     procnt        begsr                                            
+c     ntmsg#        caseq     0200          cvtitmreq              
+c     ntmsg#        caseq     0420          cvtitmreq              
+c     ntmsgf        caseq     1             cvtitmrpy              
+c     ntmsgf        caseq     3             cvtitmrpy              
+c                   endcs                                          
+c                   endsr                                          
+ *+--------------------------------------------------------------+ 
+ *|                                                              | 
+ *+--------------------------------------------------------------+ 
+c     cvtnetrpy     begsr                                          
+c                   endsr                                          
+c                                                                  
+ *+--------------------------------------------------------------+ 
+ *|                                                              | 
+ *+--------------------------------------------------------------+ 
+c     cvtitmrpy     begsr                                          
+c                   endsr                                          
+ *+--------------------------------------------------------------+ 
+ *|                                                              | 
+  *+--------------------------------------------------------------+ 
+c     cvtitmreq     begsr                                          
+c                   endsr                                          
+ *+--------------------------------------------------------------+ 
+ *|                                                              | 
+ *+--------------------------------------------------------------+ 
+c     cvtnetreq     begsr                                          
+c                   exsr      $ceklimit                            
+c                   if        nttrn$ > #maxamt and #flg = 'Y'      
+c                   exsr      err                                  
+c                   endif                                          
+c                   endsr                                          
+ *                                                                 
+ *+--------------------------------------------------------------+ 
+ *|                                                              | 
+ *+--------------------------------------------------------------+ 
+c     $ceklimit     begsr                                          
+c                                                                  
+**                                                                 
+c                   move      *blanks       #acq              3    
+c                   move      *blanks       #typtrx           2    
+c                   move      *blanks       #reff            10    
+c                   move      *blanks       #maxamt          15 0  
+C                   move      'N'           #flg              1    
+**                                                                 
+c     ntaqpt        chain     zprdov0p                             
+c                   eval      #acq = prprod                        
+c                   eval      #typtrx = nttrty                     
+c                   eval      #reff = 'LMT.'+#acq+#typtrx          
+**                                                                 
+c                   eval      umref = #reff                        
+c                   movel     ntmcat        umchr                  
+c     keyum         chain     RUM9005                              
+c                   if        %found                               
+c                   eval      #maxamt = umnum                      
+c                   eval      #flg = 'Y'                           
+c                   endif                                          
+**                                                                 
+c                   endsr                                             
+ ******************************************************************** 
+ * INIT:  PROGRAM INITIALIZATION                                      
+ ******************************************************************** 
+c     init          begsr                                             
+c                   move      *on           *in99                     
+c                   endsr                                             
+ *                                                                    
+ ******************************************************************** 
+ * ERROR                                                              
+ ******************************************************************** 
+c     err           begsr                                             
+c                   eval      ntrspc = '01'                           
+c                   eval      ntactn = 'D'                            
+c*                  eval      nwsend = 'N'                            
+c                   movea     '*ALL'        mg(5)                     
+c                   eval      mg(12)=' Invalid limit'                 
+c                   endsr                                             
+ *                                                                    
+ 
