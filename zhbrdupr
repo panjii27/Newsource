@@ -1,0 +1,126 @@
+fzissid0p  if   e           k disk                                   
+d rtds          e ds                  extname(zrtds00d)              
+d  rtmhdr                 1    156                                   
+d  rtmsg#               157    160                                   
+ *                                                                   
+d ntds          e ds                  extname(znetds0d)              
+d  ntmsg#                 1      4  0                                
+d nwds          e ds                  extname(zi87nw0p)              
+d xwds          e ds                  extname(zi87nw0p) prefix(xw:2) 
+d ztrns         e ds                  extname(ztrans0p)              
+d mg              s              1    dim(256)                       
+ *                                                                   
+d bi              s              1    dim(128)                       
+d @ok             s              1a                                  
+d #card           s             19a                                  
+d cardno          s             19a                                  
+d #lencard        s              2s 0                                
+d #start          s              2s 0                                
+d x               s              2s 0                                
+ *                                                                   
+ d #yes            c                   const('1')                 
+d #no             c                   const('0')                 
+ *                                                               
+d                sds                                             
+d  progrm           *proc                                        
+d  pgmlib                81     90                               
+ *                                                               
+ *                                                               
+c     *entry        plist                                        
+c                   parm                    caller           10  
+c                   parm                    rtds                 
+c                   parm                    ntds                 
+c                   parm                    nwds                 
+c                   parm                    xwds                 
+c                   parm                    dir               1  
+c                   parm                    mg                   
+ *                                                               
+c                   exsr      netreq                             
+c                                       
+c                   return                                              
+ *                                                                      
+ *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     netrpy        begsr                                               
+c                   endsr                                               
+ *                                                                      
+c/title                                                                 
+ *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     netreq        begsr                                               
+ *                                                                      
+c                   movel     *blank        bin##            11         
+c                   movel     *blank        ispt#             3         
+C                   move      *blank        #acq              3         
+C                   move      *blank        #iss              3         
+ *                                                                      
+c                   if        ntmsgc = 2                                
+c                   movel     ntcrd#        card#            19              
+c                   eval      #lencard = %len(%trim(card#)) - 10             
+**                                                                           
+c                   eval      x = 1                                          
+c                   eval      #start = 7                                     
+c                   dow       x <= #lencard                                  
+c                   eval      cardno = %replace('*':card#:#start:1)          
+c                   eval      card# = cardno                                 
+C                   eval      #start = #start + 1                            
+c                   eval      x = x+1                                        
+C                   enddo                                                    
+c/exec sql                                                                   
+c+       select * into :ztrns                                                
+c+       From ztrans0p                                                       
+c+       Where trtdat = :nttdat                                              
+c+       and trttim = :ntttim                                                
+c+       and trrrf# = :ntrrf#                                                
+c+       and trcati = :ntcati                                                
+c+       and trcrd# = :cardno                               
+c+       order by trxmdt, trxmtm desc                       
+c+       fetch first row only                               
+c/end-exec                                                  
+**                                                          
+c                   if        sqlstt = '00000'              
+c*                  eval      nwsend = 'N'                  
+c*                  eval      nwsndn = 'N'                  
+c                   eval      Ntrspc = '38'                 
+c                   eval      Nwrspc = '94'                 
+c                   eval      Ntactn = 'D'                  
+c                   endif                                   
+c*                  endif                                   
+ *                                                          
+c                   endif                                   
+ *                                                          
+c                   endsr                                   
+ *                                                          
+ c/title                                                                 
+ *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     procnt        begsr                                               
+c     ntmsgf        caseq     0             itmreq                      
+c     ntmsgf        caseq     2             itmreq                      
+c                   cas                     itmrpy                      
+c                   endcs                                               
+c                   endsr                                               
+c/title                                                                 
+ *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     itmreq        begsr                                               
+c                   endsr                                               
+c/title                                                                 
+ *+-------------------------------------------------------------------+ 
+  *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     itmrpy        begsr                                               
+c                   endsr                                               
+c/title                                                                 
+ *+-------------------------------------------------------------------+ 
+ *|                                                                   | 
+ *+-------------------------------------------------------------------+ 
+c     init          begsr                                               
+c                   endsr                                               
+
+
